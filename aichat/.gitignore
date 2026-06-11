@@ -1,0 +1,9 @@
+# Hide secret environment variables
+.env
+
+# Hide local database
+db.sqlite3
+
+# Hide Python cache files
+__pycache__/
+*.pyc

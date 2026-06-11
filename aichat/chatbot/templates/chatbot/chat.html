@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Django AI Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .chat-container { max-width: 600px; margin: 0 auto; background: rgb(249, 163, 163); border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
+        .chat-header { background: #007bff; color: rgb(255, 255, 255); padding: 15px; border-radius: 8px 8px 0 0; font-size: 1.2em; text-align: center; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; border-bottom: 1px solid #eee; }
+        .message { margin-bottom: 15px; padding: 10px 15px; border-radius: 15px; max-width: 75%; word-wrap: break-word; }
+        .user-message { background: #007bff; color: white; margin-left: auto; border-bottom-right-radius: 0; }
+        .bot-message { background: #e9ecef; color: #333; margin-right: auto; border-bottom-left-radius: 0; }
+        .input-area { display: flex; padding: 15px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; margin-left: 10px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Yash AI</div>
+   <div class="chat-box" id="chat-box">
+        <div class="message bot-message">Hello! How can I help you today?</div>
+
+        {% for chat in history %}
+            <div class="message user-message">{{ chat.user_message }}</div>
+            <div class="message bot-message">{{ chat.bot_response }}</div>
+        {% endfor %}
+    </div>
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Type your message here...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    function sendMessage() {
+        const inputField = document.getElementById('user-input');
+        const messageText = inputField.value.trim();
+        if (!messageText) return;
+
+        const chatBox = document.getElementById('chat-box');
+
+        // 1. Append User Message to UI
+        const userDiv = document.createElement('div');
+        userDiv.className = 'message user-message';
+        userDiv.innerText = messageText;
+        chatBox.appendChild(userDiv);
+        inputField.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 2. Send Message to Django backend using Fetch API
+        fetch('', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}' // Django security token
+            },
+            body: new URLSearchParams({ 'message': messageText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 3. Append Bot Response to UI
+            const botDiv = document.createElement('div');
+            botDiv.className = 'message bot-message';
+            botDiv.innerText = data.response;
+            chatBox.appendChild(botDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    }
+
+    // Allow pressing "Enter" to send
+    document.getElementById('user-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
+
+</body>
+</html>
